@@ -31,7 +31,14 @@ class KNNClassifier(object):
         #     y_train.
         #  2. Save the number of classes as n_classes.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        x_train = []
+        y_train = []
+        for data, labels in dl_train:
+            x_train.append(data)
+            y_train.append(labels)
+        x_train = torch.cat(x_train, dim=0)
+        y_train = torch.cat(y_train, dim=0)
+        n_classes = len(torch.unique(y_train))
         # ========================
 
         self.x_train = x_train
@@ -63,7 +70,14 @@ class KNNClassifier(object):
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # Find indices of k-nearest neighbors for each test sample
+            _, indices = torch.topk(dist_matrix[:, i], k=self.k, largest=False)
+
+            # Get labels of k-nearest neighbors for each test sample
+            knn_labels = self.y_train[indices]
+
+            # Predict most common class among k-nearest neighbors
+            y_pred[i] = torch.mode(knn_labels).values.item()
             # ========================
 
         return y_pred
@@ -91,7 +105,11 @@ def l2_dist(x1: Tensor, x2: Tensor):
 
     dists = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    x1_squared = torch.sum(x1 ** 2, dim=1, keepdim=True)
+    x2_squared = torch.sum(x2 ** 2, dim=1, keepdim=True)
+    x1x2 = torch.matmul(x1, x2.transpose(0, 1))
+
+    dists = torch.sqrt(x1_squared - 2 * x1x2 + x2_squared.transpose(0, 1))
     # ========================
 
     return dists
@@ -111,7 +129,7 @@ def accuracy(y: Tensor, y_pred: Tensor):
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
     accuracy = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    accuracy = torch.sum(y_pred == y).item() / y.shape[0]
     # ========================
 
     return accuracy
@@ -142,7 +160,37 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  random split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        n_samples = len(ds_train)
+        fold_size = n_samples // num_folds
+        total_acc = 0.0
+        acc_list = []
+        for j in range(num_folds):
+            # Define indices for the current fold
+            val_start = j * fold_size
+            val_end = (j + 1) * fold_size
+            if j == num_folds - 1:
+                val_end = n_samples
+            val_indices = list(range(val_start, val_end))
+            train_indices = list(set(range(n_samples)) - set(val_indices))
+
+            # Split dataset into train and validation sets
+            train_set = torch.utils.data.Subset(ds_train, train_indices)
+            train_dl = DataLoader(train_set, batch_size=8, shuffle=True, num_workers=2)
+            val_set = torch.utils.data.Subset(ds_train, val_indices)
+            val_dl = DataLoader(val_set, batch_size=8, shuffle=True, num_workers=2)
+            # Create kNN model and train it on the current fold's train set
+            model.train(train_dl)
+
+            x_val, y_val = dataloader_utils.flatten(val_dl)
+            # Evaluate the model on the current fold's validation set
+            y_val_pred = model.predict(x_val)
+            acc = accuracy(y_val, y_val_pred)
+
+            acc_list.append(acc_list)
+
+            # Compute average accuracy across all folds for the current k
+        accuracies.append(acc_list)
+
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
