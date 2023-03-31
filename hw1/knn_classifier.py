@@ -186,7 +186,7 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
             y_val_pred = model.predict(x_val)
             acc = accuracy(y_val, y_val_pred)
 
-            acc_list.append(acc_list)
+            acc_list.append(acc)
 
             # Compute average accuracy across all folds for the current k
         accuracies.append(acc_list)
