@@ -32,7 +32,8 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        y_pred = X.dot(self.weights_)
         # ========================
 
         return y_pred
@@ -51,7 +52,11 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        n_samples, n_features = X.shape
+
+        # Calculate optimal weights using closed-form solution
+        reg_term = self.reg_lambda * np.eye(n_features)
+        w_opt = np.linalg.inv(X.T.dot(X) + reg_term).dot(X.T).dot(y)
         # ========================
 
         self.weights_ = w_opt
@@ -77,7 +82,17 @@ def fit_predict_dataframe(
     """
     # TODO: Implement according to the docstring description.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+
+    # If feature names are not provided, use all columns except target
+    if feature_names is None:
+        feature_names = [col for col in df.columns if col != target_name]
+
+    # Extract features and target as numpy arrays
+    X = df[feature_names].values
+    y = df[target_name].values
+
+    # Fit model and make predictions
+    y_pred = model.fit(X, y).predict(X)
     # ========================
     return y_pred
 
@@ -100,7 +115,9 @@ class BiasTrickTransformer(BaseEstimator, TransformerMixin):
 
         xb = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N, D = X.shape
+        ones = np.ones((N, 1))
+        xb = np.hstack((ones, X))
         # ========================
 
         return xb
@@ -117,7 +134,7 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
         # TODO: Your custom initialization, if needed
         # Add any hyperparameters you need and save them as above
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
         # ========================
 
     def fit(self, X, y=None):
@@ -139,7 +156,14 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        poly = PolynomialFeatures(degree=2, interaction_only=False, include_bias=False)
+        X_transformed = poly.fit_transform(X)
+        # computes the correlation matrix between the new features
+        corr = np.abs(np.corrcoef(X_transformed, rowvar=False))
+        np.fill_diagonal(corr, 0)
+        # discards any features that have no correlation with any other features
+        drop_cols = np.where(np.sum(corr, axis=1) == 0)[0]
+        X_transformed = np.delete(X_transformed, drop_cols, axis=1)
         # ========================
 
         return X_transformed
@@ -163,7 +187,16 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    # Calculate correlation coefficients with target feature
+    corr_with_target = df.corrwith(df[target_feature])
+
+    # Sort correlations in descending order
+    sorted_corr = corr_with_target.abs().sort_values(ascending=False)
+
+    # Select top n features
+    top_n_features = sorted_corr[1:n + 1].index.tolist()
+    top_n_corr = sorted_corr[1:n + 1].tolist()
+
     # ========================
 
     return top_n_features, top_n_corr
@@ -179,7 +212,9 @@ def mse_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement MSE using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    n = y.shape[0]
+    squared_errors = np.square(y - y_pred)
+    mse = np.sum(squared_errors) / n
     # ========================
     return mse
 
@@ -194,7 +229,11 @@ def r2_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement R^2 using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    mean_y = np.mean(y)
+    ss_total = np.sum(np.square(y - mean_y))
+    ss_res = np.sum(np.square(y - y_pred))
+    r2 = 1 - (ss_res / ss_total)
+
     # ========================
     return r2
 
@@ -227,7 +266,30 @@ def cv_best_hyperparams(
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    best_params = {}
+    best_score = -np.inf
+
+    for lambda_val in lambda_range:
+        for degree_val in degree_range:
+            poly = PolynomialFeatures(degree=degree_val, include_bias=False)
+            X_poly = poly.fit_transform(X)
+            kfold = sklearn.model_selection.KFold(n_splits=k_folds, shuffle=True, random_state=42)
+            scores = []
+            for train_idx, val_idx in kfold.split(X_poly):
+                X_train, X_val = X_poly[train_idx], X_poly[val_idx]
+                y_train, y_val = y[train_idx], y[val_idx]
+                params = model.get_params()
+                model.set_params(**params)
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_val)
+
+                # Use R^2 as a score
+                score = r2_score(y_val, y_pred)
+                scores.append(score)
+            avg_score = np.mean(scores)
+            if avg_score > best_score:
+                best_score = avg_score
+                best_params = {'alpha': lambda_val, 'degree': degree_val}
     # ========================
 
     return best_params
