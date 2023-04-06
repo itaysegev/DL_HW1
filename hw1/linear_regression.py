@@ -266,30 +266,18 @@ def cv_best_hyperparams(
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    best_params = {}
-    best_score = -np.inf
-
-    for lambda_val in lambda_range:
-        for degree_val in degree_range:
-            poly = PolynomialFeatures(degree=degree_val, include_bias=False)
-            X_poly = poly.fit_transform(X)
-            kfold = sklearn.model_selection.KFold(n_splits=k_folds, shuffle=True, random_state=42)
-            scores = []
-            for train_idx, val_idx in kfold.split(X_poly):
-                X_train, X_val = X_poly[train_idx], X_poly[val_idx]
-                y_train, y_val = y[train_idx], y[val_idx]
-                params = model.get_params()
-                model.set_params(**params)
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_val)
-
-                # Use R^2 as a score
-                score = r2_score(y_val, y_pred)
-                scores.append(score)
-            avg_score = np.mean(scores)
-            if avg_score > best_score:
-                best_score = avg_score
-                best_params = {'alpha': lambda_val, 'degree': degree_val}
+    param_grid = {
+        'bostonfeaturestransformer__degree': degree_range,
+        'linearregressor__reg_lambda': lambda_range
+    }
+    hyperparameters = model.get_params()
+    for param, values in hyperparameters.items():
+        if param not in param_grid:
+            param_grid[param] = values if type(values) is List else [values]
+    mse_scorer = sklearn.metrics.make_scorer(sklearn.metrics.mean_squared_error, greater_is_better=False)
+    grid_search = sklearn.model_selection.GridSearchCV(model, param_grid, scoring=mse_scorer, cv=k_folds)
+    grid_search.fit(X, y)
+    best_params = grid_search.best_params_
     # ========================
 
     return best_params
