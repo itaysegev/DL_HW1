@@ -52,12 +52,31 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        true_label_score_vec = x_scores[torch.arange(len(x_scores)), y]
+
+        # Index tensor to select the elements of vec
+        idx = torch.arange(len(true_label_score_vec)).reshape(-1, 1)
+
+        # Repeat the true label score for future broadcasting operation
+        true_label_score_mat = true_label_score_vec[idx].repeat(1, x_scores.shape[1])
+
+        # Calculate the loss matrix
+        M = self.delta + x_scores - true_label_score_mat
+
+        # Zero the loss on the true ground label
+        M[torch.arange(len(y)), y] = 0
+
+        # Perform max operation in loss
+        M[M < 0] = 0
+
+        loss = M.sum(dim=1).sum() / x.shape[0]
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.grad_ctx["M"] = M
+        self.grad_ctx["x"] = x
+        self.grad_ctx["y"] = y
         # ========================
 
         return loss
@@ -75,7 +94,20 @@ class SVMHingeLoss(ClassifierLoss):
 
         grad = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # Set vars
+        G = self.grad_ctx["M"]
+        y = self.grad_ctx["y"]
+        x = self.grad_ctx["x"]
+        N = self.grad_ctx["x"].shape[0]
+
+        # Check if m_i_j > 0 for getting x_i_j * 1 in the matmul with x.t()
+        G[G > 0] = 1
+
+        # For L_i grad w.r.t w_yi (sum as was formulated)
+        G[torch.arange(len(y)), y] = -1 * (G.sum(dim=1))
+
+        # Compute final grad
+        grad = (1 / N) * torch.matmul(x.t(), G)
         # ========================
 
         return grad
