@@ -69,5 +69,17 @@ class BiasTrick(object):
         #  Add a 1 at the beginning of the given tensor's feature dimension.
         #  Hint: See torch.cat().
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # Take the shapes of the original tensor
+        ones_tensor_shape = list(x.shape)
+
+        # Set the first dim as 1, as we want to concat one element in the first dimension
+        ones_tensor_shape[-1] = 1
+
+        # Create a tensor in the shape of the original one, where the first dim is of size one containing only ones
+        ones_tensor = torch.ones(tuple(ones_tensor_shape), dtype=x.dtype)
+
+        # Concatenate the tensors
+        biased_tensor = torch.cat((ones_tensor, x), dim=-1)
+
+        return biased_tensor
         # ========================

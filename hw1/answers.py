@@ -11,26 +11,50 @@ math (delimited with $$).
 part1_q1 = r"""
 **Your answer:**
 
+##### Question 1
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+1.  **False** -  The test set allows us to estimate our out-of-sample error,
+    which is a way to estimate our model's performance on an unseen data (new data).
+    The in-sample error on the other hand allows us to understand how the model fits the training data,  i.e.
+    the "seen" data. It is hence computed on the training dataset.
+    
+2.  **False** -  Generally speaking, this claim is wrong as we may have a data with an inner-order for example.
+    i.e., in the example above, we could have all the images of "horses" placed at the beginning (idx-wise). 
+    Assuming, for example, 20% of the dataset are images of "horses", in a split which defines the test-set as the
+    first 20% images, we'll get unuseful split in the sense of learning how to label "horse" images (as we didn't 
+    see any in our supervised learning).
+    So, with that being said, a useful split will be such where both training and test sets are representations 
+    of the true distribution of the data (so the model could learn how to generalize unseen data well enough).
+
+3.  **True** -  As was mentioned, the test-set is used to estimate the out-of-sample error. I.e., to estimate
+    the model's performance on an unseen data. By using the test-set in the cross-validation process, the test
+    set won't be independent of the training data anymore (folds are being used for training and validation), 
+    and hence we'll most probably get biased (and optimistic) estimations of our performances. 
+    
+4.  **False** - As was taught in the 'Intro. to ML' course, we estimate the generalization error by averaging the 
+    scores on the validation sets, over all the folds. Hence, the validation-set performance of each fold is not a 
+    proxy for the model's generalization error.
+    The cross-validation goal is to "enhance" the usage of our data, and hence each validation set in the folds, is 
+    used to estimate the generalization error on the training sets of that specific fold.
 
 """
 
 part1_q2 = r"""
 **Your answer:**
 
+##### Question 2
+    
+Our friend's approach **is not justified**. 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The purpose of the test-set is to estimate the model's performance on an unseen data (as repeatedly explained).
+In our friend's approach, he uses the test-set to choose the hyperparameter of the regularization. By doing that, he is 
+biasing the estimation. The estimation is expected to be optimistic (overfitting the the test-set) since it is chosen 
+based on the scores we get on the test-set. It's, in some manner, contradicts the notion of using the test-set as 
+an unseen data.
+
+Exactly for this problem (of tuning hyperparameters), we learned we can use the training data and split it to have
+also validation data. This way, we are keeping the test-set data independent as much as possible from the training data,
+and by doing that achieving a more reliable estimation of the out-of-sample/generalization error.
 
 """
 
