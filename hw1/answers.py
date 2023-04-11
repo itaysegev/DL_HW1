@@ -101,40 +101,65 @@ Furthermore, k-fold CV allows us to use all the available data for training and 
 part3_q1 = r"""
 **Your answer:**
 
+##### Question 1
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The selection of Δ>0 is arbitrary for the SVM loss 𝐿(𝑾) as it is defined above,
+since for different values the same performance (similar losses) may be retrieved by modifying the weights.
+Hence, the constraining trait is basically the regularization term itself (which "determines" in a way
+the ability to change the weights in relation to some baseline performance). 
+
+Therefore, Δ isn't meant for tuning (i.e., not considered as hyperparameter) while lambda is (the parameter which
+controls the regularization).
 
 """
 
 part3_q2 = r"""
 **Your answer:**
+##### Question 2
 
+1.  The linear model obviously learns the weights which score how much a sample resembles some class.
+    But, what it's actually learning is the patterns of the digits. Those patterns are then multiplied in the sample-to
+    -be-classified. This multiplication works an an inner product between the sample and the class pattern
+    image. 
+    Hence, we expect the sample to be classified as the class with the most similar pattern (as it's an inner
+    product, we expect high scores in case we have a lot of "matching"/similar pixels, value-location wise).
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+    Since we have different "examples" for each class, the patterns may not be too conclusive. 
+    Hence, for digits with somehow similar outlines we might get wrong predictions (as the patterns may be "close"),
+    especially when the digit in the image classified is written in an un-convex manner (or the writing isn't clear)
+    
+    
+2.  At first notion we may say we have 10 new images (the digits patterns) and we are basically running 1-NN when
+    classifying a new image.
+    But, in its' true sense it really is different from KNN as we don't "save" all the training samples, and we do 
+    learn the weights using our model (producing the 10 images patterns), while the "learning" of the KNN occurs
+    at classifying (computing distances).
+    The weights are also defined using all samples (all samples are considered in the loss). While in KNN we'll first
+    find the nearest neighbours and only then take the majority vote. 
+    
 
 """
 
 part3_q3 = r"""
 **Your answer:**
 
+##### Question 3
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1.  Based on the graph of the training set loss, we would you say that the learning rate we chose is good.
+    We can see the loss decreases in a rate which doesn't seem to slow (similar to the decrease of the training loss
+    as well) and without big changes in value (up and down). In addition, the loss does seem to converge at the end.
+    
+    On the other hand, if we chose a learning rate which is "Too High" we might haven't observed the convergence and the
+    loss might have been less smooth along the epochs (with frequent changes).
+    
+    If we chose a learning rate which is "Too Low" we might have observed a decrease which is less significant in the 
+    graphs' range, and the losses value would have been higher than they are at the "convergence" regions.
+    
+2.  Based on the graphs of the training and test set accuracy, we would say that the model is:
+    Slightly overfitted to the training set.
+    
+    We conclude it as the loss on the training set seems consistently lower than the test set, while the 
+    accuracy on the training set seems consistently higher than the test set.
 """
 
 # ==============
